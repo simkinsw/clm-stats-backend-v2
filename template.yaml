@@ -1,0 +1,203 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+
+Globals:
+  Function:
+    Runtime: nodejs16.x
+    Environment:
+      Variables:
+        PLAYER_TABLE: !Select [1, !Split ['/', !GetAtt playersTable.Arn]]
+        EVENT_TABLE: !Select [1, !Split ['/', !GetAtt eventsTable.Arn]]
+        PLACEMENT_TABLE: !Select [1, !Split ['/', !GetAtt placementsTable.Arn]]
+
+
+Resources:  
+  lambdaRole:
+    Type: AWS::IAM::Role  
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal:
+            Service:
+              lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: dynamoDB
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - dynamoDB:*
+            Resource:
+            - !GetAtt playersTable.Arn
+            - !GetAtt eventsTable.Arn
+            - !GetAtt placementsTable.Arn
+      - PolicyName: sqs
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            Resource: !GetAtt top8GraphicsQueue.Arn
+      - PolicyName: ssm
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - ssm:GetParameter
+            Resource: "*"
+      - PolicyName: kms
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - kms:Decrypt
+            Resource: "*"
+      - PolicyName: logs
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "*"
+      - PolicyName: s3
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            Resource: "arn:aws:s3:::top8-graphics/*"
+      - PolicyName: lambda
+        PolicyDocument:
+          Statement:
+            Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: "*"
+
+  
+  top8GraphicsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: clmstats-top8-graphics
+
+
+  top8Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: top8-graphics
+
+
+  generateTop8Graphic:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: clmstats-generate-top8-graphic
+      CodeUri: scripts/
+      Handler: top8Graphic.handler
+      Runtime: python3.9
+      Role: !GetAtt lambdaRole.Arn
+      Timeout: 30
+      Layers:
+        - arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pillow:1
+
+  postTop8Graphic:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: clmstats-post-top8-graphic
+      CodeUri: src/
+      Handler: controllers/postGraphic.handler
+      Role: !GetAtt lambdaRole.Arn
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables:
+          BASE_URL: !GetAtt top8Bucket.DomainName
+          QUEUE_URL: !Ref top8GraphicsQueue
+          CHANNEL_ID: 1089026079127244931
+          TEST_CHANNEL_ID: 1088241618622091320 
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+    
+  importData:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: clmstats-import-data
+      CodeUri: src/
+      Handler: controllers/importData.handler
+      Role: !GetAtt lambdaRole.Arn
+      Timeout: 300 
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+      External:
+        - "@aws-sdk/client-lambda"
+
+
+  playersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "clmstats-players-winter23"
+      AttributeDefinitions:
+        - 
+          AttributeName: tag
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: tag
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 20
+        WriteCapacityUnits: 20
+
+  eventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "clmstats-events-winter23"
+      AttributeDefinitions:
+        - 
+          AttributeName: id
+          AttributeType: N
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 20
+        WriteCapacityUnits: 20
+
+  placementsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "clmstats-placements-winter23"
+      AttributeDefinitions:
+        - 
+          AttributeName: playerTag
+          AttributeType: S
+        -
+          AttributeName: eventID
+          AttributeType: N
+      KeySchema:
+        -
+          AttributeName: playerTag
+          KeyType: HASH
+        -
+          AttributeName: eventID
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 20
+        WriteCapacityUnits: 20
+  
+
