@@ -13,7 +13,7 @@ import { RatingService } from "./ratingService";
 import { sendTop8Request } from "./top8Service";
 
 //TODO: where does this go?
-const CUR_PR = ["Skerzo","Zamu","shabo","Eggy","Q?","Ober","JustJoe","Ferocitii","GI0GOAT","Killablue","FoxCap","Unsure","Will Pickles","Dragoid","macdaddy69",];
+const CUR_PR = ["Skerzo", "Zamu", "shabo", "Eggy", "Q?", "Ober", "JustJoe", "Ferocitii", "GI0GOAT", "Killablue", "FoxCap", "Unsure", "Will Pickles", "Dragoid", "macdaddy69",];
 
 @singleton()
 export class ImportDataService {
@@ -63,8 +63,8 @@ export class ImportDataService {
             await this.parseEvent(event);
         }
 
-        await this.calcRatings();
-        await this.saveAll();
+        //await this.calcRatings();
+        //await this.saveAll();
     }
 
     async calcRatings() {
@@ -78,9 +78,9 @@ export class ImportDataService {
         //Not Promise.all because of WCU concerns?
         //await this.eventRepository.batchInsert(this.events);
         //await this.placementRepository.batchInsert(this.placements);
-        await saveToS3(JSON.stringify(this.simpleSets), process.env.SETS_BUCKET, process.env.CURRENT_PR_PERIOD);
+        //await saveToS3(JSON.stringify(this.simpleSets), process.env.SETS_BUCKET, process.env.CURRENT_PR_PERIOD);
         await this.playerRepository.batchInsert(Array.from(this.playerMap.values()));
-        await this.playerRepository.batchUpdateRatings(this.oldPlayers);
+        //await this.playerRepository.batchUpdateRatings(this.oldPlayers);
     }
 
     //TODO: don't parse events that have already been parsed
@@ -106,11 +106,9 @@ export class ImportDataService {
 
         this.placements.push(...placements);
 
-        /*
-            //can this reasonably error and mess up the whole import?
-            if (event.tournamentName.toLowerCase().includes("midlane")) {
-                sendTop8Request(placements, event);
-            }
-        */
+        //can this reasonably error and mess up the whole import?
+        if (event.tournamentName.toLowerCase().includes("midlane")) {
+            sendTop8Request(placements, event);
+        }
     }
 }

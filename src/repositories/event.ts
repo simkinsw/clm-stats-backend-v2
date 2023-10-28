@@ -1,20 +1,20 @@
 import { singleton } from "tsyringe";
 import { Event } from "../models/event";
-import { DocumentClient } from "../utils/aws/dynamodb";
+import { MongoDBClient } from "../utils/aws/mongodb";
 
 @singleton()
 export class EventRepository {
     tableName: string;
-    documentClient: DocumentClient;
+    mongoDBClient: MongoDBClient;
 
-    constructor(documentClient: DocumentClient) {
+    constructor(mongoDBClient: MongoDBClient) {
         this.tableName = process.env.EVENT_TABLE!
-        this.documentClient = documentClient
+        this.mongoDBClient = mongoDBClient
     }
 
-    async batchInsert(events: Event[]) {
+    async batchUpsert(events: Event[]) {
         try {
-            await this.documentClient.batchInsert(events, this.tableName)
+            await this.mongoDBClient.batchUpsert(events.map(event => event.toDB()), this.tableName)
         } catch (err) {
             console.log(err);
         }

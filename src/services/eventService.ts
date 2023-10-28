@@ -26,10 +26,10 @@ export class EventService {
     }
 
     async getEntrants(event: Event): Promise<{player: Player, placement: Placement}[]> {
-        return this.startGG.getEntrants({ eventId: event.id }, event.numEntrants);
+        return this.startGG.getEntrants({ eventId: Number(event.id) }, event.numEntrants);
     }
 
     async getSets(event: Event): Promise<TourneySet[]> {
-        return this.startGG.getSets({ eventId: event.id });
+        return this.startGG.getSets({ eventId: Number(event.id) });
     }   
 }

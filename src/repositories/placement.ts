@@ -1,20 +1,20 @@
 import { singleton } from "tsyringe";
 import { Placement } from "../models/placement";
-import { DocumentClient } from "../utils/aws/dynamodb";
+import { MongoDBClient } from "../utils/aws/mongodb";
 
 @singleton()
 export class PlacementRepository {
     tableName: string;
-    documentClient: DocumentClient;
+    mongoDBClient: MongoDBClient;
 
-    constructor(documentClient: DocumentClient) {
+    constructor(mongoDBClient: MongoDBClient) {
         this.tableName = process.env.PLACEMENT_TABLE!
-        this.documentClient = documentClient
+        this.mongoDBClient = mongoDBClient
     }
 
-    async batchInsert(events: Placement[]) {
+    async batchUpsert(placements: Placement[]) {
         try {
-            await this.documentClient.batchInsert(events, this.tableName)
+            await this.mongoDBClient.batchUpsert(placements.map(placement => placement.toDB()), this.tableName)
         } catch (err) {
             console.log(err);
         }

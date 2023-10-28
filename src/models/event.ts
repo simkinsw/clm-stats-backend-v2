@@ -1,5 +1,5 @@
 export class Event {
-    id: number;
+    id: string;
     eventName: string;
     tournamentName: string;
     numEntrants: number;
@@ -9,8 +9,8 @@ export class Event {
     imageUrl: string;
     prPeriod = 5;
 
-    
-    constructor(id: number, eventName: string, tournamentName: string, numEntrants: number, date: number, slug: string, imageUrl: string) {
+
+    constructor(id: string, eventName: string, tournamentName: string, numEntrants: number, date: number, slug: string, imageUrl: string) {
         this.id = id;
         this.eventName = eventName;
         this.tournamentName = tournamentName;
@@ -20,21 +20,25 @@ export class Event {
         this.imageUrl = imageUrl;
     }
 
+    toDB() {
+        return { id: this.id, eventName: this.eventName, tournamentName: this.tournamentName, date: this.date, slug: this.slug, prEligible: this.prEligible, imageUrl: this.imageUrl, prPeriod: this.prPeriod };
+    }
+
     //TODO: filter non serious events? e.g. low tier, etc.
     static fromAPIResponse(eventResponse: EventResponse): Event | undefined {
         try {
             const eventName = eventResponse.name;
             if (!Event.isSingles(eventName)) {
                 return undefined;
-            } 
+            }
 
-            const id = eventResponse.id;
+            const id = eventResponse.id.toString();
             const tournamentName = eventResponse.tournament.name;
             const numEntrants = eventResponse.numEntrants;
             const date = eventResponse.tournament.endAt;
             const slug = eventResponse.slug;
-            const imageUrl = eventResponse.tournament.images.find(image => image.type === "profile")?.url 
-                                ?? eventResponse.tournament.images?.[0].url ?? "";
+            const imageUrl = eventResponse.tournament.images.find(image => image.type === "profile")?.url
+                ?? eventResponse.tournament.images?.[0].url ?? "";
 
             return new Event(id, eventName, tournamentName, numEntrants, date, slug, imageUrl);
         } catch (err) {

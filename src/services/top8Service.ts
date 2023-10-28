@@ -25,10 +25,10 @@ export function sendTop8Request(placements: Placement[], event: Event) {
     const payload = JSON.stringify({
         data: {
             number: event.slug.split("/")[1].split("-")[2],
-            date: new Date(event.date).toLocaleDateString(),
+            date: new Date(event.date * 1000).toLocaleDateString(),
             players: playerList,
         }
     });
 
     invokeLambdaAsync("clmstats-generate-top8-graphic", payload);
-}
+}    

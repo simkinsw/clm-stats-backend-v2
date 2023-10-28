@@ -1,20 +1,20 @@
 import { singleton } from "tsyringe";
 import { TourneySet } from "../models/tourneySet";
-import { DocumentClient } from "../utils/aws/dynamodb";
+import { MongoDBClient } from "../utils/aws/mongodb";
 
 @singleton()
 export class SetRepository {
     tableName: string;
-    documentClient: DocumentClient;
+    mongoDBClient: MongoDBClient;
 
-    constructor(documentClient: DocumentClient) {
+    constructor(mongoDBClient: MongoDBClient) {
         this.tableName = process.env.SET_TABLE!
-        this.documentClient = documentClient
+        this.mongoDBClient = mongoDBClient
     }
 
-    async batchInsert(events: TourneySet[]) {
+    async batchInsert(sets: TourneySet[]) {
         try {
-            await this.documentClient.batchInsert(events, this.tableName)
+            await this.mongoDBClient.batchUpsert(sets.map(set => set.toDB()), this.tableName)
         } catch (err) {
             console.log(err);
         }

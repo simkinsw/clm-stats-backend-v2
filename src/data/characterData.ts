@@ -1,5 +1,4 @@
 export function getCharacterData(player: string) {
-    console.log("REAL GET CHARACTER DATA");
     return CHARACTER_DATA.get(player);
 }
 
@@ -159,7 +158,7 @@ const CHARACTER_DATA = new Map<string, { character: string; color: string }>([
         },
     ],
     [
-        "Pablito",
+        "Olivia :3",
         {
             character: "marth",
             color: "black",
@@ -326,4 +325,116 @@ const CHARACTER_DATA = new Map<string, { character: string; color: string }>([
             color: "green",
         },
     ],
+    [
+        "Moe",
+        {
+            character: "donkeykong",
+            color: "blue"
+        }
+    ],
+    [
+        "Preeminent",
+        {
+            character: "fox",
+            color: "default"
+        }
+    ],
+    [
+        "Peanutphobia",
+        {
+            character: "yoshi",
+            color: "darkblue"
+        }
+    ],
+    [
+        "bigoldchub",
+        {
+            character: "falco",
+            color: "default"
+        }
+    ],
+    [
+        "natebug01",
+        {
+            character: "jigglypuff",
+            color: "red"
+        }
+    ],
+    [
+        "Linkbane",
+        {
+            character: "ganondorf",
+            color: "red"
+        }
+    ],
+    [
+        "Josh",
+        {
+            character: "jigglypuff",
+            color: "green"
+        }
+    ],
+    [
+        "IMDRR",
+        {
+            character: "falco",
+            color: "green"
+        }
+    ],
+    [
+        "Jopps",
+        {
+            character: "captainfalcon",
+            color: "green"
+        }
+    ],
+    [
+        "Knubs.",
+        {
+            character: "captainfalcon",
+            color: "gray"
+        }
+    ],
+    [
+        "perfume",
+        {
+            character: "sheik",
+            color: "red",
+        },
+    ],
+    [
+        "deez",
+        {
+            character: "sheik",
+            color: "default"
+        }
+    ],
+    [
+        "Tao",
+        {
+            character: "pikachu",
+            color: "default"
+        }
+    ],
+    [
+        "Trail",
+        {
+            character: "iceclimbers",
+            color: "default"
+        }
+    ],
+    [
+        "Kels",
+        {
+            character: "fox",
+            color: "green"
+        }
+    ],
+    [
+        "Blue",
+        {
+            character: "fox",
+            color: "default"
+        }
+    ]
 ]);

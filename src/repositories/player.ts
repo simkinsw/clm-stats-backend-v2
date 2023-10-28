@@ -1,40 +1,38 @@
-import { marshall } from "@aws-sdk/util-dynamodb";
 import { singleton } from "tsyringe";
 import { Player } from "../models/player";
-import { DocumentClient } from "../utils/aws/dynamodb";
+import { MongoDBClient } from "../utils/aws/mongodb";
 
 @singleton()
 export class PlayerRepository {
     tableName: string;
-    documentClient: DocumentClient;
+    mongoDBClient: MongoDBClient;
 
-    constructor(documentClient: DocumentClient) {
+    constructor(mongoDBClient: MongoDBClient) {
         this.tableName = process.env.PLAYER_TABLE!
-        this.documentClient = documentClient
+        this.mongoDBClient = mongoDBClient
     }
 
     async batchInsert(players: Player[]) {
         try {
-            await this.documentClient.batchInsert(players, this.tableName)
+            await this.mongoDBClient.batchUpsert(players.map(player => player.toDB()), this.tableName)
         } catch (err) {
             console.log(err);
         }
     }
 
-    async batchUpdateRatings(partialPlayers: { tag: string, rating: number }[]) {
+    async batchUpdateRatings(partialPlayers: { id: string, rating: number }[]) {
         try { 
             const transactItems = partialPlayers.map(player => {
                 return {
-                    Update: {
-                        ExpressionAttributeNames: { "#rating": "rating" },
-                        ExpressionAttributeValues: marshall({ ":rating": player.rating }),
-                        Key: marshall({ tag: player.tag }),
-                        TableName: this.tableName,
-                        UpdateExpression: "SET #rating = :rating"
+                    updateOne: {
+                        filter: { id: player.id },
+                        update: {
+                            $set: { rating: player.rating }
+                        }
                     }
                 }
             });
-            await this.documentClient.transact(transactItems);
+            await this.mongoDBClient.bulkUpdate(transactItems, this.tableName);
         } catch (err) {
             console.log(err);
         }

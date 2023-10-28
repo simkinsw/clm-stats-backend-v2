@@ -1,5 +1,5 @@
 export class TourneySet {
-    id: number;
+    id: string;
     winnerID: number;
     loserID: number;
     winnerTag: string;
@@ -7,7 +7,7 @@ export class TourneySet {
     fullRoundText: string;
     eventID: number;
 
-    constructor(id: number, winnerID: number, loserID: number, winnerTag: string, loserTag: string, fullRoundText: string, eventID: number) {
+    constructor(id: string, winnerID: number, loserID: number, winnerTag: string, loserTag: string, fullRoundText: string, eventID: number) {
         this.id = id;
         this.winnerID = winnerID;
         this.loserID = loserID;
@@ -17,11 +17,23 @@ export class TourneySet {
         this.eventID = eventID;
     }
 
+    toDB() {
+        return {
+            id: this.id,
+            winnerID: this.winnerID,
+            loserID: this.loserID,
+            winnerTag: this.winnerTag,
+            loserTag: this.loserTag,
+            fullRoundText: this.fullRoundText,
+            eventID: this.eventID
+        }
+    }
+
     //TODO: how to identify DQs? -1?
     //parse won games/lost games
     static fromSetsResponse(setsResponse: SetsResponse): TourneySet {
         try {
-            const id = setsResponse.id;
+            const id = setsResponse.id.toString();
             const eventID = setsResponse.event.id;
             const winner = setsResponse.winnerId;
             if(!winner || setsResponse.displayScore === "DQ") {

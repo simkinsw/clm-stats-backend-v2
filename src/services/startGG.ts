@@ -17,6 +17,7 @@ import {
 import { EntrantsVariables, EventVariables, SetsVariables } from "../types/variables";
 import { getSSMSecret } from "../utils/aws/ssm";
 import { post } from "../utils/axios";
+import { uniqueId } from "lodash";
 
 @singleton()
 export class startGG {
@@ -78,6 +79,7 @@ export class startGG {
 
             //TODO: Need a fromParticipantsResponse type thing here that filters out DQs   
             const placement = new Placement(
+                uniqueId(),
                 player.id,
                 player.tag,
                 variables.eventId,
